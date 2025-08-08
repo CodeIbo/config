@@ -11,7 +11,7 @@ if not exist "!CONFIG_FILE!" (
 
     if "!DOWNLOAD_DIR!"=="" (
         echo.
-        echo ❌ No path entered. Exiting.
+        echo No path entered. Exiting.
         exit /b 1
     )
 
@@ -25,7 +25,7 @@ if not exist "!DOWNLOAD_DIR!" (
 )
 
 cd /d "!DOWNLOAD_DIR!" || (
-    echo ❌ Failed to change directory to "!DOWNLOAD_DIR!"
+    echo Failed to change directory to "!DOWNLOAD_DIR!"
     exit /b 1
 )
 

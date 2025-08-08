@@ -6,7 +6,7 @@ Each component is isolated and reusable across machines, supporting both Windows
 
 ## 📚 Table of Contents
 
-- 🕸️ [Nginx – Multi-site Local Server](nginx/README.md)
+- 🕸️ [LocalServer configs](localserver/README.md)
 - 💻 [WezTerm – Keybindings & Layout](wezterm/README.md)
 - 🖥️ [Shell – PowerShell & Bash Configuration](shell/README.md)
 - 🛠️ [Setup – Cross-Platform System Provisioning](setup/README.md)
