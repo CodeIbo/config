@@ -1,0 +1,14 @@
+[Unit]
+Description=<description>
+After=network.target
+
+[Service]
+User=<whoami>
+WorkingDirectory=<path>
+ExecStart=<path>.venv/bin/uvicorn main:app --host 127.0.0.1 --port <any>
+Restart=always
+RestartSec=5
+Environment=PATH=<path>.venv/bin
+
+[Install]
+WantedBy=multi-user.target

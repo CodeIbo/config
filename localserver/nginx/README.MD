@@ -1,96 +1,90 @@
-# 🌐 Nginx – Local Development Site Hosting ( LINUX )
+# 🛠️ Local Development Setup: Nginx + Python Backend
 
-This folder contains Nginx configuration templates for hosting multiple local domains such as: `<name>.local`.
+This guide covers how to set up a local development environment using Nginx for static hosting and a backend service. It currently focuses on Python (FastAPI), but support for additional backend technologies (e.g. Node.js, Go, PHP) will be added in the future. It also includes how to auto-start your backend service using `systemd`. Suitable for organizing under Obsidian vault.
 
-These are meant for local development or LAN-only access - no internet exposure.
+---
 
-## Folder Structure Example
+## 🌐 Nginx Setup for Local Domain
 
-Each domain has its own root folder, e.g.:
+### 1. **Create domain root folder**
 
-`/srv/www/<name>.local/html/index.html`
+```bash
+sudo mkdir -p /srv/www/<name>.local/html
+sudo <editor> /srv/www/<name>.local/html/index.html
+```
 
-## Setup Steps
+### 2. **Copy and customize a config file**
 
-1. **Create the domain root folder:**
+Use an `example.conf` and place it into:
 
-   ```bash
-   sudo mkdir -p /srv/www/<name>.local/html
-   sudo <editor> /srv/www/<name>.local/html/index.html
-   ```
+- `/etc/nginx/sites-available/<name>.local`
+- Create a symlink:
 
-2. **Copy and customize a config file:**
-   Use the [example.conf](example.conf) as starting point in. Copy it into your system's Nginx config directory:
-   `/etc/nginx/sites-available` && `/etc/nginx/sites-enabled`. Then, edit the file placeholders `<name>`.
+```bash
+sudo ln -s /etc/nginx/sites-available/<name>.local /etc/nginx/sites-enabled/
+```
 
-3. **Update** `/etc/hosts`
+Update placeholders (`<name>`) accordingly.
+
+### 3. **Update /etc/hosts**
 
 ```hosts
-  127.0.0.1 <name>.local
+127.0.0.1 <name>.local
 ```
 
-4. **Reload nginx:**
+### 4. **Reload Nginx**
 
 ```bash
- sudo nginx -t
- sudo systemctl reload nginx
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-If confing is correct you should see in :
+Verify:
 
 ```bash
-service nginx status
+sudo systemctl status nginx
 ```
 
-`Active: active (running)`
+You should see `Active: active (running)`.
 
-### Apache conflict
-
-Turn off apache
+### 🚨 Apache Conflict (if any)
 
 ```bash
-systemctl stop apache2
-systemctl disable apache2
+sudo systemctl stop apache2
+sudo systemctl disable apache2
 ```
 
-If you still see apache home page check [this](https://askubuntu.com/questions/642238/why-do-i-still-see-an-apache-site-on-nginx) solution:
+If Apache default page still appears:
 
 ```bash
-mv /var/www/html/index.html index.html_bkp
+sudo mv /var/www/html/index.html /var/www/html/index.html_bkp
 ```
 
-### Tips
+---
 
-- Use one .conf file per domain for easier management.
+## 💡 Tips for Nginx
 
-- Keep content like index.html, style.css, etc., directly in the html/ folder.
+- Use one `.conf` file per domain.
+- Keep static content (`index.html`, `style.css`, etc.) inside the `html/` folder.
+- Can reverse proxy to a backend (e.g., Python API).
+- Use `hostname -I` to get your local IP address.
 
-- You can host static sites, or combine this setup with a reverse proxy for dynamic apps.
+### 🔐 Restrict Access to Local Network Only
 
-- `hostname -I` for local ip address
-
-- Missing nginx config file [link](https://yottasrc.com/billing/knowledgebase/144/Nginx-Configuration-File-Missing-Fix-the-issue.html)
-
-### ⛨️ Local network restriction (security)
-
-To restrict access to your Nginx site only from the local network, edit your domain's config file (e.g. `/etc/nginx/sites-available/<name>.local`) and add inside the `server {}` block:
+In your site config:
 
 ```nginx
 allow 192.168.0.0/24;
 deny all;
 ```
 
-Then reload nginx:
+Then reload:
 
 ```bash
 sudo systemctl reload nginx
 ```
 
-This ensures only devices in your LAN (e.g. 192.168.0.x) can access the site. Everything else will get 403 Forbidden.
-
-### 🔒 Firewall restriction using UFW (optional)
-
-You can also restrict Nginx access to local network at the firewall level:
+### 🔥 Restrict via UFW Firewall (optional)
 
 ```bash
 sudo ufw delete allow "Nginx Full"
@@ -98,12 +92,94 @@ sudo ufw allow from 192.168.0.0/24 to any port 80 proto tcp
 sudo ufw allow from 192.168.0.0/24 to any port 443 proto tcp
 ```
 
-This ensures ports 80 and 443 are only reachable from the local network.
-You can verify with:
+Check:
 
 ```bash
 sudo ufw status verbose
 ```
 
-From outside the LAN, these ports will show as closed or filtered.
+---
+
+## 🚀 Python Backend Setup (FastAPI Example)
+
+### 📁 Directory Structure Recommendation:
+
+Place backend inside:
+
+```
+/srv/www/<name>.local/backend/
+```
+
+### 🔧 Nginx Reverse Proxy to API
+
+In your app's Nginx config (`/etc/nginx/sites-available/<name>.local`), add inside `server {}`:
+
+```nginx
+location /api/ {
+    proxy_pass http://127.0.0.1:<number>/api/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+And copy this version of file to : `/etc/nginx/sites-enabled/<name>.local`
+
+Now you can access the API via:
+
+```
+http://<name>.local/api/
+```
+
+To test backend directly:
+
+```bash
+curl http://127.0.0.1:<number>
+```
+
+### 🗪 Backend Environment Setup (venv)
+
+> Always set up virtualenv without `sudo`
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+To test FastAPI app:
+
+```bash
+uvicorn <filename>:app --host 127.0.0.1 --port <any>
+```
+
+---
+
+## 🔁 Auto-start Python Backend via systemd
+
+Use an `example.service`, e.g. `/etc/systemd/system/<name>.service`:
+Don't forget change values in `<this>`
+
+### 🔄 Enable and start service:
+
+```bash
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable <name>.service
+sudo systemctl start <name>.service
+sudo systemctl status <name>.service
+```
+
+---
+
+## ✅ Summary
+
+With this setup:
+
+- Your static site is available at `http://<name>.local`
+- Your API is available at `http://<name>.local/api/`
+- The backend (currently Python) starts automatically with the system
+- Access is optionally restricted to your local network only
+
+Support for other backend languages and frameworks will be included in future versions of this setup guide.
 
