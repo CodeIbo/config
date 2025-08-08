@@ -11,6 +11,6 @@ Both are restricted to LAN access via UFW.
 
 ## ✅ Quick Start
 
-- See [nginx](nginx/README.MD) for local domain hosting
-- See [samba](samba/README.MD) for local file sharing setup
+- See [nginx](./nginx/README.MD) for local domain hosting
+- See [samba](./samba/README.MD) for local file sharing setup
 

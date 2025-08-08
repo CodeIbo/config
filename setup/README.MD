@@ -19,7 +19,7 @@ Includes:
 - Custom PowerShell profile scripts
 - Optional CLI wrappers (like `yt`, `ff`, `cfg`)
 
-📄 See [`setup/windows/README.md`](windows/README.md) for full details.
+📄 See [`setup/windows/README.md`](./windows/README.md) for full details.
 
 ## 🐧 Linux Setup _(coming soon)_
 
